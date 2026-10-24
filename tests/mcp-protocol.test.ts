@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { handleMcpRequest } from "../lib/mcp/handler";
+import { handleMcpRequest, corsHeaders } from "../lib/mcp/handler";
 import { mcpTools } from "../lib/mcp/tools";
 
 const TEST_SECRET = "test_mcp_secret_token_1234567890123456";
@@ -18,22 +18,89 @@ describe("MCP Streamable HTTP Protocol & Authentication", () => {
 
     const res = await handleMcpRequest(req);
     expect(res.status).toBe(401);
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
     const body = await res.json();
     expect(body.error.code).toBe(-32001);
   });
 
-  it("rejects request when Bearer token is invalid (401)", async () => {
+  it("authenticates via X-API-Key header (Composio support)", async () => {
     const req = new Request("https://opportunities.campusloop.space/api/mcp", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer invalid_secret_token",
+        "X-API-Key": TEST_SECRET,
       },
-      body: JSON.stringify({ jsonrpc: "2.0", method: "initialize", id: 1 }),
+      body: JSON.stringify({ jsonrpc: "2.0", method: "tools/list", id: 10 }),
     });
 
     const res = await handleMcpRequest(req);
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.result.tools.length).toBe(15);
+  });
+
+  it("authenticates via ?apiKey= query parameter (Composio query param support)", async () => {
+    const req = new Request(`https://opportunities.campusloop.space/api/mcp?apiKey=${TEST_SECRET}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "tools/list", id: 11 }),
+    });
+
+    const res = await handleMcpRequest(req);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.result.tools.length).toBe(15);
+  });
+
+  it("handles OPTIONS request with CORS preflight headers", async () => {
+    const req = new Request("https://opportunities.campusloop.space/api/mcp", {
+      method: "OPTIONS",
+    });
+
+    const res = await handleMcpRequest(req);
+    expect(res.status).toBe(204);
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+    expect(res.headers.get("access-control-allow-methods")).toContain("POST");
+  });
+
+  it("handles SSE connection on GET with Accept: text/event-stream", async () => {
+    const req = new Request("https://opportunities.campusloop.space/api/mcp", {
+      method: "GET",
+      headers: {
+        Accept: "text/event-stream",
+        Authorization: `Bearer ${TEST_SECRET}`,
+      },
+    });
+
+    const res = await handleMcpRequest(req);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/event-stream");
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+  });
+
+  it("handles batch JSON-RPC requests in a single HTTP payload", async () => {
+    const req = new Request("https://opportunities.campusloop.space/api/mcp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${TEST_SECRET}`,
+      },
+      body: JSON.stringify([
+        { jsonrpc: "2.0", method: "initialize", id: 1 },
+        { jsonrpc: "2.0", method: "tools/list", id: 2 },
+      ]),
+    });
+
+    const res = await handleMcpRequest(req);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBe(2);
+    expect(body[0].id).toBe(1);
+    expect(body[1].id).toBe(2);
+    expect(body[1].result.tools.length).toBe(15);
   });
 
   it("handles 'initialize' method with valid token", async () => {
