@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search, Filter, X } from "lucide-react";
-import { opportunityCategories, deliveryModes } from "@/lib/db/schema";
+import { Search, X } from "lucide-react";
+import { opportunityCategories } from "@/lib/db/schema";
 
 export function SearchFilters() {
   const router = useRouter();
@@ -56,17 +56,17 @@ export function SearchFilters() {
     <div className="space-y-3">
       {/* Search Input Bar */}
       <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-        <Search className="absolute left-3.5 h-4 w-4 text-[#8C8377]" />
+        <Search className="absolute left-3.5 h-4 w-4 text-[#8C8377] dark:text-[#736C63]" />
         <input
           type="text"
           value={searchVal}
           onChange={(e) => setSearchVal(e.target.value)}
           placeholder="Search opportunities by title, organization, or tech stack..."
-          className="w-full rounded-xl border border-[#E8E1D5] bg-white py-2.5 pl-10 pr-24 text-sm text-[#1E1A17] placeholder:text-[#8C8377] focus:border-[#BD4B2A] focus:outline-hidden focus:ring-2 focus:ring-[#BD4B2A]/20 transition shadow-2xs"
+          className="w-full rounded-xl border border-[#E8E1D5] dark:border-[#2B2622] bg-white dark:bg-[#1A1816] py-2.5 pl-10 pr-24 text-sm text-[#1E1A17] dark:text-[#F5EFEB] placeholder:text-[#8C8377] dark:placeholder:text-[#736C63] focus:border-[#BD4B2A] dark:focus:border-[#E26543] focus:outline-hidden focus:ring-2 focus:ring-[#BD4B2A]/20 dark:focus:ring-[#E26543]/20 transition shadow-2xs"
         />
         <button
           type="submit"
-          className="absolute right-1.5 rounded-lg bg-[#BD4B2A] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-[#A33F22] transition"
+          className="absolute right-1.5 rounded-lg bg-[#BD4B2A] dark:bg-[#E26543] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-[#A33F22] dark:hover:bg-[#CC4E2C] transition"
         >
           Search
         </button>
@@ -80,8 +80,8 @@ export function SearchFilters() {
             onClick={() => applyFilters({ category: null })}
             className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
               !currentCategory
-                ? "bg-[#BD4B2A] text-white shadow-2xs"
-                : "bg-white border border-[#E8E1D5] text-[#5C554D] hover:border-[#BD4B2A]/50 hover:text-[#BD4B2A]"
+                ? "bg-[#BD4B2A] dark:bg-[#E26543] text-white shadow-2xs"
+                : "bg-white dark:bg-[#1A1816] border border-[#E8E1D5] dark:border-[#2B2622] text-[#5C554D] dark:text-[#D5CDC4] hover:border-[#BD4B2A]/50 dark:hover:border-[#E26543]/50 hover:text-[#BD4B2A] dark:hover:text-[#E26543]"
             }`}
           >
             All
@@ -92,8 +92,8 @@ export function SearchFilters() {
               onClick={() => applyFilters({ category: currentCategory === cat ? null : cat })}
               className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
                 currentCategory === cat
-                  ? "bg-[#BD4B2A] text-white shadow-2xs"
-                  : "bg-white border border-[#E8E1D5] text-[#5C554D] hover:border-[#BD4B2A]/50 hover:text-[#BD4B2A]"
+                  ? "bg-[#BD4B2A] dark:bg-[#E26543] text-white shadow-2xs"
+                  : "bg-white dark:bg-[#1A1816] border border-[#E8E1D5] dark:border-[#2B2622] text-[#5C554D] dark:text-[#D5CDC4] hover:border-[#BD4B2A]/50 dark:hover:border-[#E26543]/50 hover:text-[#BD4B2A] dark:hover:text-[#E26543]"
               }`}
             >
               {categoryLabels[cat] || cat}
@@ -107,7 +107,7 @@ export function SearchFilters() {
           <select
             value={currentMode}
             onChange={(e) => applyFilters({ mode: e.target.value || null })}
-            className="rounded-lg border border-[#E8E1D5] bg-white px-2.5 py-1 text-xs text-[#5C554D] focus:border-[#BD4B2A] focus:outline-hidden"
+            className="rounded-lg border border-[#E8E1D5] dark:border-[#2B2622] bg-white dark:bg-[#1A1816] px-2.5 py-1 text-xs text-[#5C554D] dark:text-[#D5CDC4] focus:border-[#BD4B2A] dark:focus:border-[#E26543] focus:outline-hidden"
           >
             <option value="">Any Mode</option>
             <option value="remote">Remote Only</option>
@@ -120,8 +120,8 @@ export function SearchFilters() {
             onClick={() => applyFilters({ closingSoon: currentClosingSoon ? null : "true" })}
             className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition ${
               currentClosingSoon
-                ? "bg-[#FEF08A]/50 border-[#FDE047] text-[#854D0E]"
-                : "bg-white border-[#E8E1D5] text-[#5C554D] hover:border-[#BD4B2A]/40"
+                ? "bg-[#FEF08A]/50 dark:bg-[#2E200B] border-[#FDE047] dark:border-[#78350F] text-[#854D0E] dark:text-[#FCD34D]"
+                : "bg-white dark:bg-[#1A1816] border-[#E8E1D5] dark:border-[#2B2622] text-[#5C554D] dark:text-[#D5CDC4] hover:border-[#BD4B2A]/40 dark:hover:border-[#E26543]/40"
             }`}
           >
             Closing Soon
@@ -134,7 +134,7 @@ export function SearchFilters() {
                 setSearchVal("");
                 router.push(pathname);
               }}
-              className="inline-flex items-center space-x-1 text-[#BD4B2A] hover:underline px-1 py-1"
+              className="inline-flex items-center space-x-1 text-[#BD4B2A] dark:text-[#E26543] hover:underline px-1 py-1"
             >
               <X className="h-3 w-3" />
               <span>Reset</span>
@@ -144,8 +144,8 @@ export function SearchFilters() {
       </div>
 
       {isPending && (
-        <div className="h-0.5 w-full bg-[#BD4B2A]/20 overflow-hidden">
-          <div className="h-full bg-[#BD4B2A] animate-pulse"></div>
+        <div className="h-0.5 w-full bg-[#BD4B2A]/20 dark:bg-[#E26543]/20 overflow-hidden">
+          <div className="h-full bg-[#BD4B2A] dark:bg-[#E26543] animate-pulse"></div>
         </div>
       )}
     </div>

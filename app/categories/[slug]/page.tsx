@@ -177,48 +177,48 @@ export default async function CategoryPage({ params }: PageProps) {
 
       <div className="space-y-8">
         {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="flex items-center space-x-1.5 text-xs text-[#6B635B]">
-          <Link href="/" className="hover:text-[#BD4B2A] transition">
+        <nav aria-label="Breadcrumb" className="flex items-center space-x-1.5 text-xs text-[#6B635B] dark:text-[#9E958A]">
+          <Link href="/" className="hover:text-[#BD4B2A] dark:hover:text-[#E26543] transition">
             Home
           </Link>
-          <ChevronRight className="h-3 w-3 text-[#8C8377]" />
-          <span className="text-[#1E1A17] font-medium capitalize">{slug.replace("_", " ")}</span>
+          <ChevronRight className="h-3 w-3 text-[#8C8377] dark:text-[#736C63]" />
+          <span className="text-[#1E1A17] dark:text-[#F5EFEB] font-medium capitalize">{slug.replace("_", " ")}</span>
         </nav>
 
         {/* Hero Card */}
-        <div className="rounded-2xl border border-[#E8E1D5] bg-white p-6 sm:p-8 shadow-2xs space-y-3">
-          <div className="inline-flex items-center space-x-1.5 rounded-full bg-[#FDF3EE] px-3 py-1 text-xs font-semibold text-[#BD4B2A] border border-[#F6DCD2]">
+        <div className="rounded-2xl border border-[#E8E1D5] dark:border-[#2B2622] bg-white dark:bg-[#1A1816] p-6 sm:p-8 shadow-2xs space-y-3">
+          <div className="inline-flex items-center space-x-1.5 rounded-full bg-[#FDF3EE] dark:bg-[#2A1712] px-3 py-1 text-xs font-semibold text-[#BD4B2A] dark:text-[#F09A78] border border-[#F6DCD2] dark:border-[#4D261C]">
             <Sparkles className="h-3.5 w-3.5" />
             <span>Curated Category Hub</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1E1A17] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1E1A17] dark:text-[#F5EFEB] tracking-tight">
             {meta.title}
           </h1>
 
-          <p className="text-sm font-medium text-[#4A4238] max-w-2xl leading-relaxed">
+          <p className="text-sm font-medium text-[#4A4238] dark:text-[#D5CDC4] max-w-2xl leading-relaxed">
             {meta.subtitle}
           </p>
 
-          <p className="text-xs text-[#6B635B] max-w-3xl leading-relaxed pt-2 border-t border-[#F2ECE3]">
+          <p className="text-xs text-[#6B635B] dark:text-[#9E958A] max-w-3xl leading-relaxed pt-2 border-t border-[#F2ECE3] dark:border-[#26211D]">
             {meta.longCopy}
           </p>
 
-          <div className="pt-2 text-xs font-medium text-[#BD4B2A]">
+          <div className="pt-2 text-xs font-medium text-[#BD4B2A] dark:text-[#E26543]">
             Showing {items.length} of {total} verified active opportunities
           </div>
         </div>
 
         {/* Listings Feed */}
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E8E1D5] bg-white p-12 text-center space-y-3">
-            <h3 className="text-base font-semibold text-[#1E1A17]">No opportunities currently listed</h3>
-            <p className="text-xs text-[#6B635B] max-w-md mx-auto">
+          <div className="rounded-2xl border border-dashed border-[#E8E1D5] dark:border-[#2B2622] bg-white dark:bg-[#1A1816] p-12 text-center space-y-3">
+            <h3 className="text-base font-semibold text-[#1E1A17] dark:text-[#F5EFEB]">No opportunities currently listed</h3>
+            <p className="text-xs text-[#6B635B] dark:text-[#9E958A] max-w-md mx-auto">
               Our automated ingestion agents are scanning for fresh {slug.replace("_", " ")} programs. Check back soon or explore other categories.
             </p>
             <Link
               href="/"
-              className="inline-flex items-center space-x-2 text-xs font-bold text-[#BD4B2A] hover:underline"
+              className="inline-flex items-center space-x-2 text-xs font-bold text-[#BD4B2A] dark:text-[#E26543] hover:underline"
             >
               <span>Explore all opportunities</span>
               <ChevronRight className="h-3.5 w-3.5" />

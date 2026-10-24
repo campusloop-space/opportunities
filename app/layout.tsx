@@ -3,6 +3,7 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { InstallPWA } from "@/components/install-pwa";
+import { ThemeProvider, themeScript } from "@/components/theme-provider";
 import { generateWebsiteJsonLd, generateOrganizationJsonLd } from "@/lib/seo";
 
 const BASE_URL = process.env.APP_URL || "https://opportunities.campusloop.space";
@@ -119,11 +120,12 @@ export default function RootLayout({
   const organizationSchema = generateOrganizationJsonLd();
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="48x48" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -131,16 +133,19 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen flex flex-col justify-between bg-[#FFFDF9] text-[#1E1A17] selection:bg-[#BD4B2A]/20 selection:text-[#BD4B2A]">
-        <div>
-          <Navbar />
-          <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            {children}
-          </main>
-        </div>
-        <Footer />
-        <InstallPWA />
+      <body className="min-h-screen flex flex-col justify-between bg-[#FFFDF9] dark:bg-[#0F0E0D] text-[#1E1A17] dark:text-[#F5EFEB] selection:bg-[#BD4B2A]/20 dark:selection:bg-[#E26543]/30 selection:text-[#BD4B2A] dark:selection:text-[#E26543] transition-colors duration-200">
+        <ThemeProvider>
+          <div>
+            <Navbar />
+            <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+              {children}
+            </main>
+          </div>
+          <Footer />
+          <InstallPWA />
+        </ThemeProvider>
       </body>
     </html>
   );
 }
+

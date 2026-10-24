@@ -62,8 +62,8 @@ export function SaveButton({
       title={isSaved ? "Remove from saved opportunities" : "Save opportunity"}
       className={`inline-flex items-center justify-center space-x-1.5 rounded-lg border transition-all ${
         isSaved
-          ? "bg-[#BD4B2A]/10 border-[#BD4B2A] text-[#BD4B2A]"
-          : "bg-white border-[#E8E1D5] text-[#6B635B] hover:text-[#BD4B2A] hover:border-[#BD4B2A]/50"
+          ? "bg-[#BD4B2A]/10 dark:bg-[#E26543]/20 border-[#BD4B2A] dark:border-[#E26543] text-[#BD4B2A] dark:text-[#E26543]"
+          : "bg-white dark:bg-[#1A1816] border-[#E8E1D5] dark:border-[#2B2622] text-[#6B635B] dark:text-[#9E958A] hover:text-[#BD4B2A] dark:hover:text-[#E26543] hover:border-[#BD4B2A]/50 dark:hover:border-[#E26543]/50"
       } ${className || "p-2"}`}
     >
       <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
