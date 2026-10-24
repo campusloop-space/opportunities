@@ -5,6 +5,7 @@ import { listOpportunities, getUserSavedOpportunities } from "@/lib/opportunitie
 import { getSession } from "@/lib/auth/session";
 import { OpportunityCard } from "@/components/opportunity-card";
 import { opportunityCategories, type OpportunityCategory } from "@/lib/db/schema";
+import { generateBreadcrumbJsonLd, generateItemListJsonLd, generateFaqJsonLd } from "@/lib/seo";
 import { ChevronRight, Sparkles } from "lucide-react";
 
 interface PageProps {
@@ -60,8 +61,8 @@ const categoryMeta: Record<
       "Test your problem-solving skills against peers across the country. We feature coding competitions, data science hackathons, and collegiate innovation challenges.",
   },
   student_programs: {
-    title: "Campus Ambassador & Student Programs",
-    subtitle: "Community leadership, developer student clubs, and tech company ambassador roles",
+    title: "Student Ambassador & Campus Programs",
+    subtitle: "Campus ambassador, student developer clubs, and community programs",
     description: "Join official campus ambassador and student community programs across top tech companies.",
     longCopy:
       "Student partner and campus ambassador programs provide exclusive swag, networking with company engineering leads, and leadership experience on your campus.",
@@ -74,16 +75,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!meta) return { title: "Category Not Found" };
 
   const baseUrl = process.env.APP_URL || "https://opportunities.campusloop.space";
+  const canonicalUrl = `${baseUrl}/categories/${slug}`;
+
   return {
     title: `${meta.title} — Verified Deadlines`,
     description: meta.description,
     alternates: {
-      canonical: `${baseUrl}/categories/${slug}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
+      title: `${meta.title} | CampusLoop Opportunities`,
+      description: meta.description,
+      url: canonicalUrl,
+      siteName: "CampusLoop Opportunities",
+      images: [
+        {
+          url: `${baseUrl}/og-image.png`,
+          width: 1200,
+          height: 630,
+          alt: meta.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
       title: `${meta.title} | CampusLoop`,
       description: meta.description,
-      url: `${baseUrl}/categories/${slug}`,
+      images: [`${baseUrl}/og-image.png`],
+    },
+    other: {
+      "geo.region": "IN",
+      "geo.placename": "India",
     },
   };
 }
@@ -115,58 +137,91 @@ export default async function CategoryPage({ params }: PageProps) {
     savedOppIds = new Set(savedList.map((s) => s.opportunity.id));
   }
 
+  const breadcrumbsSchema = generateBreadcrumbJsonLd([
+    { name: "Home", url: "/" },
+    { name: meta.title, url: `/categories/${slug}` },
+  ]);
+
+  const itemListSchema = generateItemListJsonLd(items);
+
+  const categoryFaqs = [
+    {
+      question: `Are all ${slug.replace("_", " ")} listings on CampusLoop verified?`,
+      answer: `Yes. Every ${slug.replace("_", " ")} indexed on CampusLoop is verified against the official organizer website. We reject ghost jobs, middleman fees, and unverified postings.`,
+    },
+    {
+      question: `How frequently are new ${slug.replace("_", " ")} added?`,
+      answer: `Our curation and AI ingestion pipeline scans verified university portals, corporate engineering blogs, and foundation announcements daily.`,
+    },
+    {
+      question: `Can I bookmark opportunities for later?`,
+      answer: `Yes. Click the save icon on any listing to store it in your personal saved list. When signed in with CampusLoop, your saved opportunities sync across all your devices.`,
+    },
+  ];
+  const faqSchema = generateFaqJsonLd(categoryFaqs);
+
   return (
-    <div className="space-y-8">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center space-x-1.5 text-xs text-[#6B635B]">
-        <Link href="/" className="hover:text-[#BD4B2A] transition">
-          Home
-        </Link>
-        <ChevronRight className="h-3 w-3 text-[#8C8377]" />
-        <span className="text-[#1E1A17] font-medium capitalize">{slug.replace("_", " ")}</span>
-      </nav>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
 
-      {/* Hero Card */}
-      <div className="rounded-2xl border border-[#E8E1D5] bg-white p-6 sm:p-8 shadow-2xs space-y-3">
-        <div className="inline-flex items-center space-x-1.5 rounded-full bg-[#FDF3EE] px-3 py-1 text-xs font-semibold text-[#BD4B2A] border border-[#F6DCD2]">
-          <Sparkles className="h-3.5 w-3.5" />
-          <span>Verified Student Directory</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1E1A17] tracking-tight">
-          {meta.title}
-        </h1>
-        <p className="text-sm font-medium text-[#5C554D] max-w-2xl leading-relaxed">
-          {meta.subtitle}
-        </p>
-        <p className="text-xs text-[#6B635B] max-w-3xl leading-relaxed pt-1">
-          {meta.longCopy}
-        </p>
-      </div>
-
-      {/* Feed */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-[#1E1A17]">
-            Active Listings ({total})
-          </h2>
-          <Link href="/" className="text-xs text-[#BD4B2A] font-semibold hover:underline">
-            ← Back to all categories
+      <div className="space-y-8">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="flex items-center space-x-1.5 text-xs text-[#6B635B]">
+          <Link href="/" className="hover:text-[#BD4B2A] transition">
+            Home
           </Link>
+          <ChevronRight className="h-3 w-3 text-[#8C8377]" />
+          <span className="text-[#1E1A17] font-medium capitalize">{slug.replace("_", " ")}</span>
+        </nav>
+
+        {/* Hero Card */}
+        <div className="rounded-2xl border border-[#E8E1D5] bg-white p-6 sm:p-8 shadow-2xs space-y-3">
+          <div className="inline-flex items-center space-x-1.5 rounded-full bg-[#FDF3EE] px-3 py-1 text-xs font-semibold text-[#BD4B2A] border border-[#F6DCD2]">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Curated Category Hub</span>
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1E1A17] tracking-tight">
+            {meta.title}
+          </h1>
+
+          <p className="text-sm font-medium text-[#4A4238] max-w-2xl leading-relaxed">
+            {meta.subtitle}
+          </p>
+
+          <p className="text-xs text-[#6B635B] max-w-3xl leading-relaxed pt-2 border-t border-[#F2ECE3]">
+            {meta.longCopy}
+          </p>
+
+          <div className="pt-2 text-xs font-medium text-[#BD4B2A]">
+            Showing {items.length} of {total} verified active opportunities
+          </div>
         </div>
 
+        {/* Listings Feed */}
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E8E1D5] bg-[#FAF7F2] p-12 text-center space-y-3">
-            <h3 className="text-base font-semibold text-[#1E1A17]">
-              No active listings in this category right now
-            </h3>
+          <div className="rounded-2xl border border-dashed border-[#E8E1D5] bg-white p-12 text-center space-y-3">
+            <h3 className="text-base font-semibold text-[#1E1A17]">No opportunities currently listed</h3>
             <p className="text-xs text-[#6B635B] max-w-md mx-auto">
-              Our automated crawlers check for new openings every hour. Check back shortly or explore other categories.
+              Our automated ingestion agents are scanning for fresh {slug.replace("_", " ")} programs. Check back soon or explore other categories.
             </p>
             <Link
               href="/"
-              className="inline-flex items-center space-x-2 rounded-lg bg-[#BD4B2A] px-4 py-2 text-xs font-semibold text-white hover:bg-[#A33F22]"
+              className="inline-flex items-center space-x-2 text-xs font-bold text-[#BD4B2A] hover:underline"
             >
-              Browse All Opportunities
+              <span>Explore all opportunities</span>
+              <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         ) : (
@@ -182,6 +237,6 @@ export default async function CategoryPage({ params }: PageProps) {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

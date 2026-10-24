@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="200" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D95C36" />
+      <stop offset="100%" stop-color="#933318" />
+    </linearGradient>
+  </defs>
+
+  <!-- Emblem on the left -->
+  <g transform="translate(20, 20)">
+    <rect width="160" height="160" rx="36" fill="url(#logoIconGrad)"/>
+    <g transform="translate(18, 18) scale(0.24)">
+      <path d="M 245 40 C 190 45, 140 70, 100 110 C 60 150, 35 205, 25 260 C 23 270, 22 285, 22 300 C 20 355, 35 405, 65 450 C 90 490, 125 520, 170 540 C 220 565, 280 572, 335 560 C 410 545, 470 500, 505 430 C 513 415, 517 405, 517 400 C 517 395, 512 388, 508 386 C 505 385, 475 375, 425 360 C 395 350, 397 350, 385 370 C 367 397, 337 417, 305 423 C 294 425, 273 425, 261 423 C 208 413, 170 372, 161 315 C 156 281, 165 246, 187 218 C 204 196, 226 181, 256 173 C 263 171, 268 171, 284 171 C 301 171, 305 171, 314 173 C 344 180, 370 197, 388 221 C 392 226, 396 231, 397 231 C 401 233, 409 233, 414 231 C 416 230, 430 222, 445 214 C 504 181, 504 181, 502 173 C 501 165, 480 138, 460 119 C 420 81, 372 57, 315 48 C 301 46, 265 45, 245 40 Z" fill="#FFFFFF"/>
+      <path d="M 360 140 L 372 170 L 402 182 L 372 194 L 360 224 L 348 194 L 318 182 L 348 170 Z" fill="#FFE082"/>
+    </g>
+  </g>
+
+  <!-- Typography on the right -->
+  <text x="210" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="48" fill="#1E1A17" letter-spacing="-1">CampusLoop</text>
+  <text x="210" y="135" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="34" fill="#BD4B2A" letter-spacing="-0.5">Opportunities</text>
+  
+  <!-- Pill badge: LABS -->
+  <rect x="520" y="52" width="70" height="26" rx="6" fill="#FDF3EE" stroke="#F6DCD2" stroke-width="1.5"/>
+  <text x="535" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="13" fill="#BD4B2A" letter-spacing="1">LABS</text>
+  
+  <text x="210" y="165" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="500" font-size="15" fill="#8C8377">Student Internships, Hackathons &amp; Fellowships</text>
+</svg>

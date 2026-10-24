@@ -36,3 +36,10 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/settings.json
+
+# Tooling binaries and local agent scaffolding
+.impeccable/
+.github/skills/
+.github/agents/
+.github/hooks/
+

@@ -12,50 +12,62 @@ export async function Navbar() {
         {/* Brand */}
         <div className="flex items-center space-x-6">
           <Link href="/" className="flex items-center space-x-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#BD4B2A] text-white font-bold text-lg shadow-sm">
-              Ω
-            </span>
+            {/* Logo Emblem */}
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#D95C36] to-[#933318] p-1.5 shadow-xs">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/icon.svg"
+                alt="CampusLoop"
+                className="h-full w-full object-contain"
+              />
+            </div>
             <div className="flex flex-col">
-              <span className="font-bold text-base tracking-tight text-[#1E1A17] flex items-center gap-1.5">
-                CampusLoop <span className="font-semibold text-[#BD4B2A]">Opportunities</span>
+              <span className="font-extrabold text-base tracking-tight text-[#1E1A17] flex items-center gap-1.5 leading-none">
+                CampusLoop <span className="font-bold text-[#BD4B2A]">Opportunities</span>
               </span>
-              <span className="text-[10px] uppercase font-medium tracking-wider text-[#6B635B]">
+              <span className="text-[10px] uppercase font-semibold tracking-wider text-[#8C8377] mt-1">
                 CampusLoop Labs
               </span>
             </div>
           </Link>
 
           {/* Nav links */}
-          <nav className="hidden md:flex items-center space-x-1 text-sm font-medium text-[#4A4238]">
+          <nav className="hidden lg:flex items-center space-x-1 text-xs font-semibold text-[#4A4238]">
             <Link
               href="/categories/internships"
-              className="rounded-md px-3 py-1.5 hover:bg-[#F3EAE0] transition-colors"
+              className="rounded-md px-2.5 py-1.5 hover:bg-[#F3EAE0] transition-colors"
             >
               Internships
             </Link>
             <Link
               href="/categories/hackathons"
-              className="rounded-md px-3 py-1.5 hover:bg-[#F3EAE0] transition-colors"
+              className="rounded-md px-2.5 py-1.5 hover:bg-[#F3EAE0] transition-colors"
             >
               Hackathons
             </Link>
             <Link
               href="/categories/scholarships"
-              className="rounded-md px-3 py-1.5 hover:bg-[#F3EAE0] transition-colors"
+              className="rounded-md px-2.5 py-1.5 hover:bg-[#F3EAE0] transition-colors"
             >
               Scholarships
             </Link>
             <Link
               href="/categories/fellowships"
-              className="rounded-md px-3 py-1.5 hover:bg-[#F3EAE0] transition-colors"
+              className="rounded-md px-2.5 py-1.5 hover:bg-[#F3EAE0] transition-colors"
             >
               Fellowships
             </Link>
             <Link
               href="/categories/research"
-              className="rounded-md px-3 py-1.5 hover:bg-[#F3EAE0] transition-colors"
+              className="rounded-md px-2.5 py-1.5 hover:bg-[#F3EAE0] transition-colors"
             >
               Research
+            </Link>
+            <Link
+              href="/categories/competitions"
+              className="rounded-md px-2.5 py-1.5 hover:bg-[#F3EAE0] transition-colors"
+            >
+              Competitions
             </Link>
           </nav>
         </div>

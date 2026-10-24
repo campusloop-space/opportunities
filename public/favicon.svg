@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D95C36" />
+      <stop offset="50%" stop-color="#BD4B2A" />
+      <stop offset="100%" stop-color="#933318" />
+    </linearGradient>
+    <linearGradient id="loopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#FFF0EB" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Base background with rounded squircle -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle inner border -->
+  <rect x="4" y="4" width="504" height="504" rx="108" fill="none" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="4"/>
+
+  <!-- Loop emblem -->
+  <g transform="translate(68, 68) scale(0.74)" filter="url(#glow)">
+    <path d="M 245 40 C 190 45, 140 70, 100 110 C 60 150, 35 205, 25 260 C 23 270, 22 285, 22 300 C 20 355, 35 405, 65 450 C 90 490, 125 520, 170 540 C 220 565, 280 572, 335 560 C 410 545, 470 500, 505 430 C 513 415, 517 405, 517 400 C 517 395, 512 388, 508 386 C 505 385, 475 375, 425 360 C 395 350, 397 350, 385 370 C 367 397, 337 417, 305 423 C 294 425, 273 425, 261 423 C 208 413, 170 372, 161 315 C 156 281, 165 246, 187 218 C 204 196, 226 181, 256 173 C 263 171, 268 171, 284 171 C 301 171, 305 171, 314 173 C 344 180, 370 197, 388 221 C 392 226, 396 231, 397 231 C 401 233, 409 233, 414 231 C 416 230, 430 222, 445 214 C 504 181, 504 181, 502 173 C 501 165, 480 138, 460 119 C 420 81, 372 57, 315 48 C 301 46, 265 45, 245 40 Z" fill="url(#loopGrad)"/>
+    
+    <!-- Spark / Star inside loop signifying discovery & opportunity -->
+    <path d="M 360 140 L 372 170 L 402 182 L 372 194 L 360 224 L 348 194 L 318 182 L 348 170 Z" fill="#FFE082"/>
+  </g>
+</svg>

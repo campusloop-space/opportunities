@@ -1,7 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { generateOpportunityJsonLd, generateBreadcrumbJsonLd } from "../lib/seo";
+import {
+  generateOpportunityJsonLd,
+  generateBreadcrumbJsonLd,
+  generateWebsiteJsonLd,
+  generateOrganizationJsonLd,
+  generateItemListJsonLd,
+  generateFaqJsonLd,
+} from "../lib/seo";
 import type { Opportunity } from "../lib/db/schema";
 import robots from "../app/robots";
+import manifest from "../app/manifest";
 
 describe("SEO & Structured Data", () => {
   const mockOpportunity: Opportunity = {
@@ -74,6 +82,40 @@ describe("SEO & Structured Data", () => {
     expect(breadcrumbs.itemListElement[0].name).toBe("Home");
   });
 
+  it("generates WebSite with SearchAction schema", () => {
+    const website = generateWebsiteJsonLd();
+    expect(website["@type"]).toBe("WebSite");
+    expect(website.name).toBe("CampusLoop Opportunities");
+    expect(website.potentialAction["@type"]).toBe("SearchAction");
+    expect(website.potentialAction.target.urlTemplate).toContain("/?q={search_term_string}");
+  });
+
+  it("generates Organization schema with CampusLoop branding", () => {
+    const org = generateOrganizationJsonLd();
+    expect(org["@type"]).toBe("Organization");
+    expect(org.name).toBe("CampusLoop Opportunities");
+    expect(org.logo).toContain("/logo.png");
+    expect(org.sameAs).toContain("https://campusloop.space");
+  });
+
+  it("generates ItemList carousel schema for feeds", () => {
+    const itemList = generateItemListJsonLd([mockOpportunity]);
+    expect(itemList["@type"]).toBe("ItemList");
+    expect(itemList.itemListElement.length).toBe(1);
+    expect(itemList.itemListElement[0].position).toBe(1);
+    expect(itemList.itemListElement[0].name).toBe("Google Summer of Code 2026");
+  });
+
+  it("generates FAQPage schema for common student questions", () => {
+    const faq = generateFaqJsonLd([
+      { question: "Is this free?", answer: "Yes, 100% free with verified official links." },
+    ]);
+    expect(faq["@type"]).toBe("FAQPage");
+    expect(faq.mainEntity.length).toBe(1);
+    expect(faq.mainEntity[0].name).toBe("Is this free?");
+    expect(faq.mainEntity[0].acceptedAnswer.text).toContain("Yes, 100% free");
+  });
+
   it("robots configuration permits public discovery and blocks private routes", () => {
     const config = robots();
     const rules = Array.isArray(config.rules) ? config.rules[0] : config.rules;
@@ -84,5 +126,15 @@ describe("SEO & Structured Data", () => {
     expect(rules.disallow).toContain("/auth/");
     expect(rules.disallow).toContain("/saved");
     expect(config.sitemap).toContain("sitemap.xml");
+  });
+
+  it("manifest configuration defines PWA metadata and icons", () => {
+    const pwaManifest = manifest();
+    expect(pwaManifest.name).toBe("CampusLoop Opportunities");
+    expect(pwaManifest.short_name).toBe("Opportunities");
+    expect(pwaManifest.display).toBe("standalone");
+    expect(pwaManifest.theme_color).toBe("#BD4B2A");
+    expect(pwaManifest.icons?.length).toBeGreaterThanOrEqual(4);
+    expect(pwaManifest.shortcuts?.length).toBeGreaterThanOrEqual(3);
   });
 });

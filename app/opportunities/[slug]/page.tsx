@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getOpportunityBySlug, isOpportunitySaved } from "@/lib/opportunities/service";
 import { getSession } from "@/lib/auth/session";
-import { generateOpportunityJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
+import { generateOpportunityJsonLd, generateBreadcrumbJsonLd, generateFaqJsonLd } from "@/lib/seo";
 import { SaveButton } from "@/components/save-button";
 import { ShareButtons } from "@/components/share-buttons";
 import {
@@ -34,6 +34,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const baseUrl = process.env.APP_URL || "https://opportunities.campusloop.space";
   const canonicalUrl = `${baseUrl}/opportunities/${opp.slug}`;
 
+  const oppLogo =
+    ((opp.metadata as Record<string, unknown>)?.logoUrl as string) ||
+    `${baseUrl}/og-image.png`;
+
   return {
     title: `${opp.title} — ${opp.organizerName}`,
     description: opp.summary,
@@ -47,11 +51,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "article",
       publishedTime: opp.publishedAt?.toISOString(),
       modifiedTime: opp.updatedAt?.toISOString(),
+      siteName: "CampusLoop Opportunities",
+      images: [
+        {
+          url: oppLogo,
+          width: 1200,
+          height: 630,
+          alt: `${opp.title} by ${opp.organizerName}`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: `${opp.title} | CampusLoop`,
       description: opp.summary,
+      images: [oppLogo],
+    },
+    other: {
+      "geo.region": "IN",
+      "geo.placename": opp.location || "India",
     },
   };
 }
@@ -74,6 +92,28 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
     { name: opp.title, url: `/opportunities/${opp.slug}` },
   ]);
 
+  const faqs = [
+    {
+      question: `Who is eligible to apply for ${opp.title}?`,
+      answer:
+        opp.eligibilitySummary ||
+        `Open to college and university students. Refer to official guidelines on ${opp.organizerName}'s portal for specific branch requirements.`,
+    },
+    {
+      question: `What is the financial stipend or award for this opportunity?`,
+      answer:
+        opp.benefitsSummary ||
+        (opp.stipendAmount
+          ? `A verified stipend of ${opp.stipendCurrency || "INR"} ${opp.stipendAmount} is provided directly by the organizer.`
+          : "Check the official application portal for full awards and benefits details."),
+    },
+    {
+      question: `How do I apply for this opportunity?`,
+      answer: `Submit your application directly through the verified official portal at ${opp.applicationUrl}. CampusLoop never charges any application or processing fees.`,
+    },
+  ];
+  const faqJsonLd = generateFaqJsonLd(faqs);
+
   const now = new Date();
   const deadline = opp.deadlineAt ? new Date(opp.deadlineAt) : null;
   const daysLeft = deadline ? Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
@@ -88,6 +128,10 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
       <div className="space-y-6">
@@ -157,6 +201,8 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
                 title={opp.title}
                 slug={opp.slug}
                 organizerName={opp.organizerName}
+                category={opp.category}
+                stipend={opp.stipendAmount ? `${opp.stipendCurrency || "INR"} ${opp.stipendAmount}` : null}
               />
             </div>
           </div>

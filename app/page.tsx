@@ -16,6 +16,7 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
+import { generateItemListJsonLd } from "@/lib/seo";
 import type { OpportunityCategory, DeliveryMode } from "@/lib/db/schema";
 
 interface PageProps {
@@ -77,8 +78,16 @@ export default async function HomePage({ searchParams }: PageProps) {
     { id: "student_programs", title: "Programs", icon: Users, color: "text-[#319795] bg-[#E6FFFA]" },
   ];
 
+  const itemListSchema = generateItemListJsonLd(items);
+
   return (
     <div className="space-y-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(itemListSchema),
+        }}
+      />
       {/* Value proposition & search section */}
       <section className="space-y-4 pt-2">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E8E1D5] pb-6">
