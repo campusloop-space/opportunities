@@ -25,6 +25,8 @@ interface PageProps {
     mode?: DeliveryMode;
     search?: string;
     closingSoon?: string;
+    qualityTier?: "A" | "B" | "C" | "D";
+    sortBy?: "publishedAt" | "deadlineAt" | "createdAt" | "updatedAt" | "qualityScore";
     offset?: string;
   }>;
 }
@@ -46,11 +48,12 @@ export default async function HomePage({ searchParams }: PageProps) {
     category,
     deliveryMode,
     search,
+    qualityTier: params.qualityTier,
     closingSoonOnly,
     offset,
     limit,
-    sortBy: closingSoonOnly ? "deadlineAt" : "publishedAt",
-    sortOrder: closingSoonOnly ? "asc" : "desc",
+    sortBy: closingSoonOnly ? "deadlineAt" : (params.sortBy || "publishedAt"),
+    sortOrder: closingSoonOnly ? "asc" : params.sortBy === "qualityScore" ? "desc" : params.sortBy === "deadlineAt" ? "asc" : "desc",
   });
 
   // Closing soon spotlight (up to 3 items)

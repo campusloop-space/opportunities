@@ -8,6 +8,7 @@ import {
   markExpiredOpportunity,
   checkDuplicateOpportunities,
   getOpportunityBySlug,
+  getOpportunityByIdOrSlug,
   listOpportunities,
   getIngestionStats,
   bulkUpsertOpportunities,
@@ -68,6 +69,7 @@ export const mcpTools: McpToolDefinition[] = [
         status: { type: "string", enum: ["draft", "published"], default: "draft" },
         sourceMethod: { type: "string", enum: ["official", "organizer_submitted", "editorial", "imported"], default: "imported" },
         sourceNotes: { type: "string" },
+        metadata: { type: "object", description: "Structured display metadata: qualityScore, qualityTier, labels, logoUrl, posterUrl, and qualitySignals." },
       },
       required: ["title", "summary", "description", "category", "organizerName", "sourceUrl", "applicationUrl"],
     },
@@ -109,6 +111,7 @@ export const mcpTools: McpToolDefinition[] = [
         status: { type: "string", enum: ["draft", "published"] },
         sourceMethod: { type: "string", enum: ["official", "organizer_submitted", "editorial", "imported"] },
         allowImmediatePublish: { type: "boolean", default: false },
+        metadata: { type: "object", description: "Structured display metadata: qualityScore, qualityTier, labels, logoUrl, posterUrl, and qualitySignals." },
       },
       required: ["title", "summary", "description", "category", "organizerName", "sourceUrl", "applicationUrl"],
     },
@@ -153,7 +156,7 @@ export const mcpTools: McpToolDefinition[] = [
     },
     handler: async (args) => {
       const idOrSlug = z.string().parse(args.idOrSlug);
-      const opp = await getOpportunityBySlug(idOrSlug, { includeUnpublished: true });
+      const opp = await getOpportunityByIdOrSlug(idOrSlug, { includeUnpublished: true });
       if (!opp) throw new Error(`Opportunity not found: ${idOrSlug}`);
       return opp;
     },
@@ -168,6 +171,8 @@ export const mcpTools: McpToolDefinition[] = [
         category: { type: "string", enum: [...opportunityCategories] },
         deliveryMode: { type: "string", enum: ["remote", "in_person", "hybrid", "unknown"] },
         status: { type: "string", enum: ["draft", "published", "closed", "expired", "rejected"] },
+        qualityTier: { type: "string", enum: ["A", "B", "C", "D"], description: "Listing information-quality tier." },
+        minQuality: { type: "number", description: "Minimum listing-quality score from 0 to 100." },
         limit: { type: "number", default: 20 },
         offset: { type: "number", default: 0 },
       },
@@ -185,9 +190,11 @@ export const mcpTools: McpToolDefinition[] = [
       properties: {
         category: { type: "string", enum: [...opportunityCategories] },
         status: { type: "string", enum: ["draft", "published", "closed", "expired", "rejected"] },
-        sortBy: { type: "string", enum: ["publishedAt", "deadlineAt", "createdAt", "updatedAt"], default: "publishedAt" },
+        sortBy: { type: "string", enum: ["publishedAt", "deadlineAt", "createdAt", "updatedAt", "qualityScore"], default: "publishedAt" },
         sortOrder: { type: "string", enum: ["asc", "desc"], default: "desc" },
         closingSoonOnly: { type: "boolean" },
+        qualityTier: { type: "string", enum: ["A", "B", "C", "D"], description: "Listing information-quality tier." },
+        minQuality: { type: "number", description: "Minimum listing-quality score from 0 to 100." },
         limit: { type: "number", default: 20 },
         offset: { type: "number", default: 0 },
       },
