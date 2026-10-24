@@ -77,3 +77,12 @@ a {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #E26543;
 }
+
+
+/* Quiet, hover-triggered icon motion; accessible reduced-motion fallback. */
+.icon-animated { transition: transform 180ms ease, opacity 180ms ease; }
+button:hover .icon-animated, a:hover .icon-animated, .group:hover .icon-animated { transform: translateY(-1px) scale(1.04); }
+@media (prefers-reduced-motion: reduce) {
+  .icon-animated { transition: none !important; animation: none !important; }
+  .group:hover .icon-animated, a:hover .icon-animated, button:hover .icon-animated { transform: none !important; }
+}

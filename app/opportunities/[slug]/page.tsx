@@ -5,6 +5,7 @@ import { getOpportunityBySlug, isOpportunitySaved } from "@/lib/opportunities/se
 import { getSession } from "@/lib/auth/session";
 import { generateOpportunityJsonLd, generateBreadcrumbJsonLd, generateFaqJsonLd } from "@/lib/seo";
 import { SaveButton } from "@/components/save-button";
+import { getMetadataImage, getOpportunityQuality, getOrganizerLogoUrl } from "@/lib/opportunities/quality";
 import { ShareButtons } from "@/components/share-buttons";
 import {
   Calendar,
@@ -117,6 +118,10 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
   const now = new Date();
   const deadline = opp.deadlineAt ? new Date(opp.deadlineAt) : null;
   const daysLeft = deadline ? Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+  const metadata = (opp.metadata ?? {}) as Record<string, unknown>;
+  const quality = getOpportunityQuality(opp);
+  const logoUrl = getMetadataImage(metadata, "logoUrl") || getOrganizerLogoUrl(opp.organizerName);
+  const posterUrl = getMetadataImage(metadata, "posterUrl") || `/api/poster/${encodeURIComponent(opp.slug)}`;
 
   return (
     <>
@@ -150,6 +155,8 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
           </span>
         </nav>
 
+        <div className="overflow-hidden rounded-2xl border border-[#E8E1D5] bg-white dark:border-[#2B2622] dark:bg-[#1A1816]"><img src={posterUrl} alt={`${opp.title} poster`} loading="lazy" className="block aspect-[16/5] w-full object-cover" /></div>
+
         {/* Main Header Card */}
         <div className="rounded-2xl border border-[#E8E1D5] dark:border-[#2B2622] bg-white dark:bg-[#1A1816] p-6 sm:p-8 shadow-2xs space-y-6">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
@@ -163,6 +170,7 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
                   <span className="capitalize">{opp.deliveryMode}</span>
                   {opp.location && opp.location !== "Worldwide" && ` • ${opp.location}`}
                 </span>
+                <span title="Information quality, not popularity" className="inline-flex items-center gap-1 rounded-md border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-800 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-300">Info quality {quality.tier} · {quality.score}/100</span>
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1E1A17] dark:text-[#F5EFEB] tracking-tight leading-tight">
@@ -170,8 +178,11 @@ export default async function OpportunityDetailPage({ params }: PageProps) {
               </h1>
 
               <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-[#5C554D] dark:text-[#D5CDC4]">
-                <div className="flex items-center space-x-1.5">
-                  <Building2 className="h-4 w-4 text-[#8C8377] dark:text-[#736C63]" />
+                <div className="flex items-center space-x-2">
+                  <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#E8E1D5] bg-white text-xs font-bold text-[#BD4B2A] dark:border-[#2B2622] dark:bg-[#211D1A] dark:text-[#F09A78]">
+                    <span aria-hidden="true">{opp.organizerName.slice(0, 1).toUpperCase()}</span>
+                    {logoUrl && <img src={logoUrl} alt={`${opp.organizerName} logo`} className="absolute inset-1 h-[calc(100%-8px)] w-[calc(100%-8px)] object-contain" onError={(event) => { event.currentTarget.style.display = "none"; }} />}
+                  </span>
                   <span>{opp.organizerName}</span>
                 </div>
                 {opp.organizerWebsite && (

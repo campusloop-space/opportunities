@@ -94,9 +94,11 @@ export const ListOpportunitiesSchema = z.object({
   deliveryMode: z.enum(deliveryModes).optional(),
   search: z.string().max(100).optional(),
   closingSoonOnly: z.boolean().optional(),
+  qualityTier: z.enum(["A", "B", "C", "D"]).optional(),
+  minQuality: z.coerce.number().int().min(0).max(100).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
-  sortBy: z.enum(["publishedAt", "deadlineAt", "createdAt", "updatedAt"]).default("publishedAt"),
+  sortBy: z.enum(["publishedAt", "deadlineAt", "createdAt", "updatedAt", "qualityScore"]).default("publishedAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 

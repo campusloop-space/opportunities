@@ -133,9 +133,10 @@ export async function upsertOpportunity(
   if (existing.length > 0) {
     const opp = existing[0];
     const contentHash = computeContentHash(input);
+    const metadataChanged = JSON.stringify(opp.metadata ?? {}) !== JSON.stringify(input.metadata ?? {});
 
-    // If content hash matches, just update sourceCheckedAt & lastSeenAt
-    if (opp.contentHash === contentHash) {
+    // If core content and display metadata match, only refresh source-check timestamps.
+    if (opp.contentHash === contentHash && !metadataChanged) {
       const [updated] = await db
         .update(opportunities)
         .set({
@@ -179,6 +180,8 @@ export async function upsertOpportunity(
         sourceCheckedAt: new Date(),
         lastSeenAt: new Date(),
         contentHash,
+        metadata: { ...(opp.metadata ?? {}), ...(input.metadata ?? {}) },
+        sourceNotes: input.sourceNotes ?? opp.sourceNotes,
         updatedBy: actor.id || actor.type,
         updatedAt: new Date(),
       })
@@ -234,6 +237,8 @@ export async function updateOpportunity(
   if (patch.deliveryMode !== undefined) updateFields.deliveryMode = patch.deliveryMode;
   if (patch.eligibilitySummary !== undefined) updateFields.eligibilitySummary = patch.eligibilitySummary;
   if (patch.benefitsSummary !== undefined) updateFields.benefitsSummary = patch.benefitsSummary;
+  if (patch.sourceNotes !== undefined) updateFields.sourceNotes = patch.sourceNotes;
+  if (patch.metadata !== undefined) updateFields.metadata = { ...(opp.metadata ?? {}), ...(patch.metadata ?? {}) };
   if (patch.stipendAmount !== undefined) updateFields.stipendAmount = patch.stipendAmount;
   if (patch.stipendCurrency !== undefined) updateFields.stipendCurrency = patch.stipendCurrency;
   if (patch.deadlineAt !== undefined) updateFields.deadlineAt = patch.deadlineAt ? new Date(patch.deadlineAt) : null;
@@ -436,6 +441,19 @@ export async function getOpportunityBySlug(
   return opp;
 }
 
+export async function getOpportunityByIdOrSlug(
+  idOrSlug: string,
+  options: { includeUnpublished?: boolean } = {}
+) {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+  if (!isUuid) return getOpportunityBySlug(idOrSlug, options);
+  const results = await db.select().from(opportunities).where(eq(opportunities.id, idOrSlug)).limit(1);
+  if (results.length === 0) return null;
+  const opp = results[0];
+  if (!options.includeUnpublished && opp.status !== "published") return null;
+  return opp;
+}
+
 export async function listOpportunities(
   filters: Partial<z.infer<typeof ListOpportunitiesSchema>> = {},
   options: { includeUnpublished?: boolean } = {}
@@ -443,6 +461,17 @@ export async function listOpportunities(
   const conditions = [];
   const limit = filters.limit ?? 20;
   const offset = filters.offset ?? 0;
+  const computedQualityScore = sql<number>`LEAST(98, CASE
+    WHEN jsonb_typeof(${opportunities.metadata}->'qualityScore') = 'number' THEN (${opportunities.metadata}->>'qualityScore')::integer
+    ELSE 35
+      + CASE WHEN ${opportunities.sourceMethod} = 'official' THEN 20 ELSE 0 END
+      + CASE WHEN ${opportunities.sourceUrl} IS NOT NULL THEN 10 ELSE 0 END
+      + CASE WHEN ${opportunities.applicationUrl} IS NOT NULL THEN 10 ELSE 0 END
+      + CASE WHEN ${opportunities.deadlineAt} IS NOT NULL OR ${opportunities.rollingDeadline} = true THEN 10 ELSE 0 END
+      + CASE WHEN ${opportunities.eligibilitySummary} IS NOT NULL AND length(${opportunities.eligibilitySummary}) > 20 THEN 5 ELSE 0 END
+      + CASE WHEN ${opportunities.benefitsSummary} IS NOT NULL THEN 5 ELSE 0 END
+      + CASE WHEN length(${opportunities.description}) > 220 THEN 5 ELSE 0 END
+  END)`;
 
   if (!options.includeUnpublished) {
     conditions.push(eq(opportunities.status, "published"));
@@ -457,7 +486,15 @@ export async function listOpportunities(
   if (filters.deliveryMode) {
     conditions.push(eq(opportunities.deliveryMode, filters.deliveryMode));
   }
-
+  if (filters.minQuality !== undefined) conditions.push(gte(computedQualityScore, filters.minQuality));
+  if (filters.qualityTier) {
+    switch (filters.qualityTier) {
+      case "A": conditions.push(gte(computedQualityScore, 90)); break;
+      case "B": conditions.push(and(gte(computedQualityScore, 80), lte(computedQualityScore, 89))); break;
+      case "C": conditions.push(and(gte(computedQualityScore, 70), lte(computedQualityScore, 79))); break;
+      case "D": conditions.push(lte(computedQualityScore, 69)); break;
+    }
+  }
   if (filters.search) {
     const term = `%${filters.search.trim()}%`;
     conditions.push(
@@ -493,6 +530,9 @@ export async function listOpportunities(
       break;
     case "updatedAt":
       orderExpr = isAsc ? asc(opportunities.updatedAt) : desc(opportunities.updatedAt);
+      break;
+    case "qualityScore":
+      orderExpr = isAsc ? asc(computedQualityScore) : desc(computedQualityScore);
       break;
     case "publishedAt":
     default:
