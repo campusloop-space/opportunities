@@ -461,8 +461,19 @@ export async function listOpportunities(
   const conditions = [];
   const limit = filters.limit ?? 20;
   const offset = filters.offset ?? 0;
-  const computedQualityScore = sql<number>\`LEAST(98, CASE
-    WHEN (\${opportunities.metadata}->>'qualityScore') ~ '^[0-9]{1,3} {
+  const computedQualityScore = sql<number>`LEAST(98, CASE
+    WHEN jsonb_typeof(${opportunities.metadata}->'qualityScore') = 'number' THEN (${opportunities.metadata}->>'qualityScore')::integer
+    ELSE 35
+      + CASE WHEN ${opportunities.sourceMethod} = 'official' THEN 20 ELSE 0 END
+      + CASE WHEN ${opportunities.sourceUrl} IS NOT NULL THEN 10 ELSE 0 END
+      + CASE WHEN ${opportunities.applicationUrl} IS NOT NULL THEN 10 ELSE 0 END
+      + CASE WHEN ${opportunities.deadlineAt} IS NOT NULL OR ${opportunities.rollingDeadline} = true THEN 10 ELSE 0 END
+      + CASE WHEN ${opportunities.eligibilitySummary} IS NOT NULL AND length(${opportunities.eligibilitySummary}) > 20 THEN 5 ELSE 0 END
+      + CASE WHEN ${opportunities.benefitsSummary} IS NOT NULL THEN 5 ELSE 0 END
+      + CASE WHEN length(${opportunities.description}) > 220 THEN 5 ELSE 0 END
+  END)`;
+
+  if (!options.includeUnpublished) {
     conditions.push(eq(opportunities.status, "published"));
   } else if (filters.status) {
     conditions.push(eq(opportunities.status, filters.status));
@@ -522,205 +533,6 @@ export async function listOpportunities(
       break;
     case "qualityScore":
       orderExpr = isAsc ? asc(computedQualityScore) : desc(computedQualityScore);
-      break;
-    case "publishedAt":
-    default:
-      orderExpr = isAsc ? asc(opportunities.publishedAt) : desc(opportunities.publishedAt);
-      break;
-  }
-
-  const items = await db
-    .select()
-    .from(opportunities)
-    .where(whereClause)
-    .orderBy(orderExpr)
-    .limit(limit)
-    .offset(offset);
-
-  const [totalResult] = await db
-    .select({ count: count() })
-    .from(opportunities)
-    .where(whereClause);
-
-  return {
-    items,
-    total: Number(totalResult?.count || 0),
-    limit,
-    offset,
-  };
-}
-
-export async function getIngestionStats() {
-  const [totalRes] = await db.select({ count: count() }).from(opportunities);
-
-  const byCategory = await db
-    .select({ category: opportunities.category, count: count() })
-    .from(opportunities)
-    .groupBy(opportunities.category);
-
-  const byStatus = await db
-    .select({ status: opportunities.status, count: count() })
-    .from(opportunities)
-    .groupBy(opportunities.status);
-
-  return {
-    total: Number(totalRes?.count || 0),
-    byCategory: Object.fromEntries(byCategory.map((c) => [c.category, Number(c.count)])),
-    byStatus: Object.fromEntries(byStatus.map((s) => [s.status, Number(s.count)])),
-    checkedAt: new Date().toISOString(),
-  };
-}
-
-export async function bulkUpsertOpportunities(
-  items: z.infer<typeof CreateOpportunitySchema>[],
-  allowImmediatePublish: boolean = false,
-  actor: { type: string; id?: string } = { type: "system" }
-) {
-  let created = 0;
-  let updated = 0;
-  let skipped = 0;
-  const errors: { index: number; title: string; error: string }[] = [];
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    try {
-      const res = await upsertOpportunity({ ...item, allowImmediatePublish }, actor);
-      if (res.operation === "created") created++;
-      else if (res.operation === "updated") updated++;
-      else skipped++;
-    } catch (err: unknown) {
-      errors.push({
-        index: i,
-        title: item.title,
-        error: (err as Error).message,
-      });
-    }
-  }
-
-  return {
-    total: items.length,
-    created,
-    updated,
-    skipped,
-    failed: errors.length,
-    errors,
-  };
-}
-
-// User bookmarks
-export async function toggleSaveOpportunity(userSub: string, opportunityId: string) {
-  const existing = await db
-    .select()
-    .from(savedOpportunities)
-    .where(
-      and(
-        eq(savedOpportunities.userSub, userSub),
-        eq(savedOpportunities.opportunityId, opportunityId)
-      )
-    )
-    .limit(1);
-
-  if (existing.length > 0) {
-    await db
-      .delete(savedOpportunities)
-      .where(eq(savedOpportunities.id, existing[0].id));
-    return { saved: false };
-  }
-
-  await db.insert(savedOpportunities).values({
-    userSub,
-    opportunityId,
-  });
-  return { saved: true };
-}
-
-export async function getUserSavedOpportunities(userSub: string) {
-  const saved = await db
-    .select({
-      savedAt: savedOpportunities.createdAt,
-      opportunity: opportunities,
-    })
-    .from(savedOpportunities)
-    .innerJoin(opportunities, eq(savedOpportunities.opportunityId, opportunities.id))
-    .where(eq(savedOpportunities.userSub, userSub))
-    .orderBy(desc(savedOpportunities.createdAt));
-
-  return saved;
-}
-
-export async function isOpportunitySaved(userSub: string, opportunityId: string): Promise<boolean> {
-  const found = await db
-    .select({ id: savedOpportunities.id })
-    .from(savedOpportunities)
-    .where(
-      and(
-        eq(savedOpportunities.userSub, userSub),
-        eq(savedOpportunities.opportunityId, opportunityId)
-      )
-    )
-    .limit(1);
-  return found.length > 0;
-}
- THEN (\${opportunities.metadata}->>'qualityScore')::integer
-    ELSE 35
-      + CASE WHEN \${opportunities.sourceMethod} = 'official' THEN 20 ELSE 0 END
-      + CASE WHEN \${opportunities.sourceUrl} IS NOT NULL THEN 10 ELSE 0 END
-      + CASE WHEN \${opportunities.applicationUrl} IS NOT NULL THEN 10 ELSE 0 END
-      + CASE WHEN \${opportunities.deadlineAt} IS NOT NULL OR \${opportunities.rollingDeadline} = true THEN 10 ELSE 0 END
-      + CASE WHEN \${opportunities.eligibilitySummary} IS NOT NULL AND length(\${opportunities.eligibilitySummary}) > 20 THEN 5 ELSE 0 END
-      + CASE WHEN \${opportunities.benefitsSummary} IS NOT NULL THEN 5 ELSE 0 END
-      + CASE WHEN length(\${opportunities.description}) > 220 THEN 5 ELSE 0 END
-  END)\`;
-
-  if (!options.includeUnpublished) {
-    conditions.push(eq(opportunities.status, "published"));
-  } else if (filters.status) {
-    conditions.push(eq(opportunities.status, filters.status));
-  }
-
-  if (filters.category) {
-    conditions.push(eq(opportunities.category, filters.category));
-  }
-
-  if (filters.deliveryMode) {
-    conditions.push(eq(opportunities.deliveryMode, filters.deliveryMode));
-  }
-
-  if (filters.search) {
-    const term = `%${filters.search.trim()}%`;
-    conditions.push(
-      or(
-        ilike(opportunities.title, term),
-        ilike(opportunities.summary, term),
-        ilike(opportunities.organizerName, term)
-      )
-    );
-  }
-
-  if (filters.closingSoonOnly) {
-    const now = new Date();
-    const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    conditions.push(
-      and(
-        gte(opportunities.deadlineAt, now),
-        lte(opportunities.deadlineAt, sevenDaysFromNow)
-      )
-    );
-  }
-
-  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-  let orderExpr;
-  const isAsc = filters.sortOrder === "asc";
-  switch (filters.sortBy) {
-    case "deadlineAt":
-      orderExpr = isAsc ? asc(opportunities.deadlineAt) : desc(opportunities.deadlineAt);
-      break;
-    case "createdAt":
-      orderExpr = isAsc ? asc(opportunities.createdAt) : desc(opportunities.createdAt);
-      break;
-    case "updatedAt":
-      orderExpr = isAsc ? asc(opportunities.updatedAt) : desc(opportunities.updatedAt);
       break;
     case "publishedAt":
     default:
