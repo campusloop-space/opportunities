@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js & OpenNext build outputs
+.next/
+out/
+.open-next/
+dist/
+
+# Cloudflare & Wrangler
+.wrangler/
+.mf/
+
+# Environment files and secrets (NEVER COMMIT)
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.local
+*.pem
+
+# Logs and debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+scratch/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
+.idea/
+.vscode/*
+!.vscode/settings.json

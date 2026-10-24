@@ -1,0 +1,187 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import type { Metadata } from "next";
+import { listOpportunities, getUserSavedOpportunities } from "@/lib/opportunities/service";
+import { getSession } from "@/lib/auth/session";
+import { OpportunityCard } from "@/components/opportunity-card";
+import { opportunityCategories, type OpportunityCategory } from "@/lib/db/schema";
+import { ChevronRight, Sparkles } from "lucide-react";
+
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export const revalidate = 60;
+
+const categoryMeta: Record<
+  string,
+  { title: string; subtitle: string; description: string; longCopy: string }
+> = {
+  internships: {
+    title: "Student Internships 2026",
+    subtitle: "Software engineering, research, design, and data science internships for Indian college students",
+    description: "Browse verified summer, winter, and off-campus internships. All listings feature official application links and stated stipends.",
+    longCopy:
+      "Landing an internship is the highest-leverage milestone for college students in India. Whether you are aiming for product-based tech companies, startups, or research institutions, our listings are checked for active application portals and genuine student eligibility.",
+  },
+  hackathons: {
+    title: "National & Global Hackathons 2026",
+    subtitle: "Hackathons, product build sprints, and collegiate coding competitions",
+    description: "Discover upcoming hackathons across India and globally. Find themes, registration deadlines, and cash prize pools.",
+    longCopy:
+      "Hackathons offer students the fastest way to build real projects, earn prizes, and get noticed by recruiters. We index university hackathons, national contests (like Smart India Hackathon), and open global hackathons.",
+  },
+  scholarships: {
+    title: "College Scholarships & Grants",
+    subtitle: "Merit-based, need-based, and corporate scholarships for undergraduate and engineering students",
+    description: "Verified college scholarships, tuition waivers, and education grants with transparent eligibility criteria.",
+    longCopy:
+      "Education financing should never be a mystery. We track vetted scholarships from corporate foundations, government initiatives, and philanthropy funds with transparent eligibility criteria and verified deadlines.",
+  },
+  fellowships: {
+    title: "Fellowships & Young Leadership Programs",
+    subtitle: "Prestigious fellowships in open source, policy, leadership, and technical innovation",
+    description: "Explore funded fellowships including Google Summer of Code, MLH Fellowship, and research programs.",
+    longCopy:
+      "Fellowships provide sustained mentorship, global peer cohorts, and generous stipends. These programs often bridge the gap between academic theory and high-impact industry or open source contribution.",
+  },
+  research: {
+    title: "Undergraduate Research Programs",
+    subtitle: "Summer research fellowships at IITs, IISc, TIFR, and international labs",
+    description: "Discover undergraduate research internships, SURGE, SRFP, and university research opportunities.",
+    longCopy:
+      "Engaging in scientific or technical research builds deep domain mastery. Explore summer research fellowships at premier Indian institutes and global university labs.",
+  },
+  competitions: {
+    title: "Competitions & Challenges",
+    subtitle: "Algorithmic contests, data science challenges, and collegiate awards",
+    description: "Participate in competitive programming, case challenges, and global developer contests.",
+    longCopy:
+      "Test your problem-solving skills against peers across the country. We feature coding competitions, data science hackathons, and collegiate innovation challenges.",
+  },
+  student_programs: {
+    title: "Campus Ambassador & Student Programs",
+    subtitle: "Community leadership, developer student clubs, and tech company ambassador roles",
+    description: "Join official campus ambassador and student community programs across top tech companies.",
+    longCopy:
+      "Student partner and campus ambassador programs provide exclusive swag, networking with company engineering leads, and leadership experience on your campus.",
+  },
+};
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const meta = categoryMeta[slug];
+  if (!meta) return { title: "Category Not Found" };
+
+  const baseUrl = process.env.APP_URL || "https://opportunities.campusloop.space";
+  return {
+    title: `${meta.title} — Verified Deadlines`,
+    description: meta.description,
+    alternates: {
+      canonical: `${baseUrl}/categories/${slug}`,
+    },
+    openGraph: {
+      title: `${meta.title} | CampusLoop`,
+      description: meta.description,
+      url: `${baseUrl}/categories/${slug}`,
+    },
+  };
+}
+
+export default async function CategoryPage({ params }: PageProps) {
+  const { slug } = await params;
+  if (!opportunityCategories.includes(slug as OpportunityCategory)) {
+    notFound();
+  }
+
+  const meta = categoryMeta[slug] || {
+    title: slug.toUpperCase(),
+    subtitle: `Explore opportunities in ${slug}`,
+    description: `Curated student opportunities for ${slug}.`,
+    longCopy: "",
+  };
+
+  const session = await getSession();
+  const { items, total } = await listOpportunities({
+    category: slug as OpportunityCategory,
+    limit: 50,
+    sortBy: "publishedAt",
+    sortOrder: "desc",
+  });
+
+  let savedOppIds = new Set<string>();
+  if (session?.sub) {
+    const savedList = await getUserSavedOpportunities(session.sub);
+    savedOppIds = new Set(savedList.map((s) => s.opportunity.id));
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" className="flex items-center space-x-1.5 text-xs text-[#6B635B]">
+        <Link href="/" className="hover:text-[#BD4B2A] transition">
+          Home
+        </Link>
+        <ChevronRight className="h-3 w-3 text-[#8C8377]" />
+        <span className="text-[#1E1A17] font-medium capitalize">{slug.replace("_", " ")}</span>
+      </nav>
+
+      {/* Hero Card */}
+      <div className="rounded-2xl border border-[#E8E1D5] bg-white p-6 sm:p-8 shadow-2xs space-y-3">
+        <div className="inline-flex items-center space-x-1.5 rounded-full bg-[#FDF3EE] px-3 py-1 text-xs font-semibold text-[#BD4B2A] border border-[#F6DCD2]">
+          <Sparkles className="h-3.5 w-3.5" />
+          <span>Verified Student Directory</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1E1A17] tracking-tight">
+          {meta.title}
+        </h1>
+        <p className="text-sm font-medium text-[#5C554D] max-w-2xl leading-relaxed">
+          {meta.subtitle}
+        </p>
+        <p className="text-xs text-[#6B635B] max-w-3xl leading-relaxed pt-1">
+          {meta.longCopy}
+        </p>
+      </div>
+
+      {/* Feed */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-[#1E1A17]">
+            Active Listings ({total})
+          </h2>
+          <Link href="/" className="text-xs text-[#BD4B2A] font-semibold hover:underline">
+            ← Back to all categories
+          </Link>
+        </div>
+
+        {items.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-[#E8E1D5] bg-[#FAF7F2] p-12 text-center space-y-3">
+            <h3 className="text-base font-semibold text-[#1E1A17]">
+              No active listings in this category right now
+            </h3>
+            <p className="text-xs text-[#6B635B] max-w-md mx-auto">
+              Our automated crawlers check for new openings every hour. Check back shortly or explore other categories.
+            </p>
+            <Link
+              href="/"
+              className="inline-flex items-center space-x-2 rounded-lg bg-[#BD4B2A] px-4 py-2 text-xs font-semibold text-white hover:bg-[#A33F22]"
+            >
+              Browse All Opportunities
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {items.map((opp) => (
+              <OpportunityCard
+                key={opp.id}
+                opportunity={opp}
+                isSaved={savedOppIds.has(opp.id)}
+                isAuthenticated={!!session}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

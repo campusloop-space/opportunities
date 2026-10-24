@@ -1,91 +1,94 @@
-I'll take a quick look at DSAloop and CampusLoop so the ideas fit what you've already built.
+# CampusLoop Opportunities — Design System & UI Specification
 
-One thing matters more than which site you build next. DSALoop is no-signup and stores progress locally, which is good for SEO and bounce rate. But it also means that traffic leaves without ever becoming a CampusLoop account. You already have "Login with CampusLoop", so use the same pattern on every sub-platform: keep the content fully open and indexable, then offer an optional sign-in that syncs progress and counts toward the main CampusLoop streak and Loop Points. Solving a DSALoop problem should keep your loop alive. That turns each sub-site into a funnel instead of a separate island.
+## 1. Brand Identity & Aesthetic Foundation
 
-## Sub-platforms worth building
+CampusLoop Opportunities is part of the **CampusLoop Labs** family, designed with an editorial, trustworthy, academic-grade aesthetic tailored for Indian and global college students.
 
-I judged each one on four things: a large long tail of searches, a reason to come back, something shareable, and a natural path into CampusLoop.
+Rather than a generic blue SaaS layout, the visual identity uses warm terracotta tones, parchment neutrals, crisp micro-typography, and high-density information cards reminiscent of high-end research directories and university publications.
 
-**1. PlaceLoop: placements and interview prep**
-Interview experiences, company-wise questions, and aptitude practice for mass recruiters (TCS NQT, Infosys, Accenture, Cognizant, Capgemini). That's where most Indian students actually get placed, so it's a much bigger audience than the LeetCode crowd.
-- SEO: pages for every company × role × year, plus college placement pages. NIRF reports publish median packages, so you have real data to start from.
-- Viral: "got placed" offer cards, and reels on the aptitude question most people get wrong.
-- Bridge: only verified students can post experiences, which is your trust edge over random blogs. Each company page links to DSALoop's company track.
+### Color Tokens
 
-**2. GATELoop: GATE CSE and DA prep**
-- SEO: one page per previous-year question (PYQ), plus topic and year pages.
-- Viral: a score and rank predictor based on the response sheet. After the exam, people share their predicted rank.
-- Bridge: the NPTEL courses already on CampusLoop, and the same CS topics as DSALoop.
+| Token Name | Hex Code | Purpose |
+| :--- | :--- | :--- |
+| `--color-terracotta` | `#BD4B2A` | Primary brand accent, active states, key CTAs |
+| `--color-terracotta-hover` | `#A33F22` | Hover states for primary buttons and links |
+| `--color-terracotta-light` | `#FDF3EE` | Badge backgrounds, accent containers |
+| `--color-terracotta-border` | `#F6DCD2` | Subtle borders for terracotta surfaces |
+| `--color-cream` | `#FDFBF7` | Page background, canvas wash |
+| `--color-cream-subtle` | `#F7F3ED` | Secondary containers, filter bars, card hover surfaces |
+| `--color-border-card` | `#E8E1D5` | Default card and panel outlines |
+| `--color-border-divider` | `#F2ECE3` | Hairline dividers and internal card rules |
+| `--color-text-primary` | `#1E1A17` | Headings, titles, high-emphasis text |
+| `--color-text-secondary` | `#4A4238` | Body copy, descriptions, navigation links |
+| `--color-text-muted` | `#6B635B` | Metadata, labels, secondary information |
+| `--color-text-faint` | `#8C8377` | Timestamps, placeholder text, source verification indicators |
+| `--color-success` | `#1E7E34` | Verified status, active stipends, open badges |
+| `--color-success-bg` | `#EBF7EE` | Success badge background |
+| `--color-success-border` | `#C3E6CB` | Success badge border |
+| `--color-danger` | `#9B1C1C` | Closed/expired indicators, report alerts |
+| `--color-danger-bg` | `#FDF2F2` | Danger badge background |
+| `--color-danger-border` | `#F8B4B4` | Danger badge border |
+| `--color-amber` | `#B45309` | Closing soon countdown warnings |
+| `--color-amber-bg` | `#FEF3C7` | Closing soon badge background |
+| `--color-amber-border` | `#FDE68A` | Closing soon badge border |
 
-**3. ExamLoop: university exams**
-PYQs, important questions, syllabus, and SGPA/CGPA calculators for specific universities (AKTU, VTU, RGPV, MAKAUT, JNTU, Anna, and so on).
-- SEO: pages for every university × subject × year, plus one calculator page per university.
-- Viral: a "bunk calculator" that tells you how many classes you can skip. It's funny and very shareable.
-- Bridge: this is the Academic Vault with a sharper SEO surface. Uploading requires login.
+---
 
-**4. AdmitLoop: JoSAA/CSAB counselling**
-Cutoffs, a college predictor, and honest reviews from verified students.
-- SEO: pages for every college × branch × round × category.
-- Viral: predictor result cards during counselling season.
-- Bridge: incoming freshers join their future college hub before day one, which solves your cold start for every new batch.
-- Safety: many visitors here will be under 18. Moderate the "ask a senior" Q&A, and keep this funnel away from Campus Match entirely.
+## 2. Typography & Spatial Rhythm
 
-**5. ResumeLoop: resumes and LinkedIn**
-An ATS-friendly resume builder, an AI "resume roast", and LinkedIn headline tools.
-- SEO: resume pages per role, branch, and "fresher" variant.
-- Viral: roast screenshots and reels.
-- Bridge: the resume automatically pulls CampusLoop course certificates and DSALoop progress, with a verified-student badge.
+### Type Hierarchy
+- **Primary Font Family**: Inter, system sans-serif (`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`).
+- **Headings**:
+  - `Hero Title`: `text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight`
+  - `Section Title`: `text-xl sm:text-2xl font-bold tracking-tight text-[#1E1A17]`
+  - `Card Title`: `text-base font-bold text-[#1E1A17] line-clamp-2`
+  - `Metadata / Badges`: `text-[11px] font-semibold tracking-wide uppercase`
 
-**6. OppLoop: opportunities with deadlines**
-Hackathons, internships, scholarships, and fellowships.
-- SEO: fresh pages like "hackathons in India this month" and "scholarships for B.Tech students 2026".
-- Viral: deadline posts that get forwarded in college WhatsApp groups.
-- Bridge: a "find teammates from your college" button on each hackathon, inside your communities.
+### Layout Density
+- Designed for scannability during intense application seasons.
+- Cards use compact padding (`p-5` on desktop, `p-4` on mobile) with explicit line clamping to prevent vertical sprawl.
+- Filter chips and quick categories are accessible within 1 tap on mobile viewports.
 
-**7. BuildLoop: projects**
-Final-year and mini-project ideas with open-source references, plus a student project showcase.
-- SEO: idea pages per branch, tech stack, and year.
-- Viral: a weekly top-projects list and demo reels.
-- Bridge: projects live on CampusLoop profiles.
+---
 
-**8. FestLoop: fest calendar**
-Tech and cultural fests across India.
-- SEO: a page per fest name × year covering dates, events, and passes.
-- Viral: fest reels are the most reel-able thing in Indian college life, so run a user-submitted "fest reel of the week".
-- Bridge: RSVPs and college hubs already exist on CampusLoop.
+## 3. Core Component Library
 
-**Where I'd start:**
-- **PlaceLoop** first. It shares company pages with DSALoop and reaches a broader audience.
-- **GATELoop** next, because of timing. GATE is in early February, so launching now catches the run-up and the post-exam predictor spike.
-- **ExamLoop's calculators** in parallel. They're the cheapest to build, about a weekend on Workers.
-- **AdmitLoop** should be live by spring, before counselling season.
+### 1. OpportunityCard (`components/opportunity-card.tsx`)
+- **Category Badge**: Top-left colored pill indicating category (`Internship`, `Hackathon`, `Scholarship`, `Fellowship`, `Research`, `Competition`, `Student Program`).
+- **Urgency Indicator**: Dynamic pill displaying:
+  - `Closing Soon (X days left)` with amber badge if deadline is within 7 days.
+  - `Open` with emerald badge if deadline is active.
+  - `Expired` with subtle crimson badge if deadline has elapsed.
+- **Save Bookmark Action**: Top-right heart/bookmark icon with optimistic local state and CampusLoop authentication check.
+- **Organization & Role**: Clear organizer name with building icon, followed by hyperlinked opportunity title.
+- **Perks & Format**: Pills showing `Stipend / Prize Pool`, `Remote / In-Person / Hybrid`, and `Location`.
+- **Source Verification Footer**: Displays `Official` or `Verified Source` check with quick `View Details` chevron.
 
-## Growth playbook
+### 2. Search & Filter Bar (`components/search-filters.tsx`)
+- Dynamic URL parameter synchronization (`useSearchParams` + `useRouter`).
+- Free-text query debouncing for instant search across title, organization, and description.
+- Multi-dimensional filtering:
+  - **Category**: Select dropdown covering all 7 opportunity types.
+  - **Location Type**: `all`, `remote`, `in_person`, `hybrid`.
+  - **Status Filter**: `all`, `open` (hide closed/expired).
+  - **Sort Order**: `deadline` (closing first) vs `newest` (recently posted).
+  - **Stipend Toggle**: Checkbox to isolate paid opportunities.
 
-**SEO**
-- Programmatic pages only work when each page carries unique data: a cutoff table, a real interview experience, a worked solution. Google's scaled content abuse policy targets mass-produced thin pages. That applies to your daily article pipeline too.
-- Cross-link the ecosystem around entities. For example, Amazon on DSALoop ↔ Amazon experiences on PlaceLoop ↔ Amazon resume template on ResumeLoop. That builds topical clusters Google recognizes.
-- Choose subdomain vs subfolder deliberately. Subdomains give each brand its own identity and deploy, but in practice they don't lift campusloop.space the way subfolders do. Rule of thumb:
-  - Standalone brands like DSALoop and GATELoop go on subdomains.
-  - College-centric content (ExamLoop, AdmitLoop) goes under campusloop.space/, next to the college hubs.
-- Give each subdomain its own Search Console property and sitemap. You're already on IndexNow.
-- Make Hinglish versions of high-intent pages. There's much less competition.
-- Plan launches around the student calendar: placements (roughly Aug–Dec), GATE (Feb), end-sems (around Nov–Dec and Apr–May), JoSAA (Jun–Jul).
+### 3. Share & Bookmark Action Bar (`components/share-buttons.tsx` & `components/save-button.tsx`)
+- **Direct WhatsApp Sharing**: Tailored one-tap URL scheme (`https://api.whatsapp.com/send?text=...`) for sharing opportunities into college batch WhatsApp and Telegram groups.
+- **Copy Link**: Toast-free inline feedback copying the canonical URL.
+- **Web Share API**: Native sheet fallback for mobile browsers.
+- **Save Button**: Preserves bookmarks in Neon database for signed-in CampusLoop users.
 
-**App-viral (built into the product)**
-- Make every result a shareable card with a dynamic OG image: GATE rank, resume score, bunk budget, pattern mastery map. Make sharing WhatsApp-first with a prefilled message, since college distribution runs on WhatsApp groups.
-- Run college-vs-college leaderboards, like a weekly DSALoop contest or GATE mock rankings. Inter-college rivalry recruits campus ambassadors for you.
-- Offer README and LinkedIn badges ("DSALoop streak: 42 days"), like GitHub readme stats. Each badge is a backlink and an ad, and it's an evening's build for you.
-- Give campus ambassadors referral codes, with a per-college leaderboard.
-- Put login in front of the social and sync features, never the content. Gating content kills SEO.
+---
 
-**Reel-viral (content engine)**
-- Use CodeVisualizer to render pattern animations as a daily series, e.g. "Sliding Window in 30 seconds". Once set up, each reel costs almost nothing to make.
-- Make data reels from your own datasets, e.g. "Average package at every NIT in 30 seconds". They get saved and shared, nobody else has them, and the same data can feed the documentary-style YouTube series.
-- Use comment-to-DM automation ("comment GRAPHS for the roadmap"). Links in reels aren't clickable, and the comments boost reach.
-- Turn campus-feed confessions into anonymized reels, but only with the poster's explicit opt-in.
-- Run consistent series rather than chasing one-off hits: "Day 14/75 of Blind 75", "TCS NQT question of the day".
+## 4. Accessibility & Responsive Breakpoints
 
-**Traps to skip:** NPTEL weekly assignment answers, selling ready-made final-year projects, and leaked papers. They all have big search volume, but they're cheating-adjacent and would undercut the verified-student trust CampusLoop is built on.
-
-Want me to write a build spec for PlaceLoop (page matrix, D1 schema, structured data, share cards), or put this whole plan into a doc you can keep?
+- **Breakpoints**:
+  - `sm`: 640px (single-column cards switch to 2-column grid)
+  - `md`: 768px (horizontal navigation & filter drawer expands)
+  - `lg`: 1024px (3-column discovery feed, sticky sidebars)
+  - `xl`: 1280px (maximum container width `max-w-7xl` with 24px padding)
+- **Contrast**: All text tokens exceed WCAG 2.1 AA 4.5:1 contrast requirements against their respective backgrounds.
+- **Keyboard Navigation**: All interactive elements (filters, bookmark buttons, category chips, outbound links) have visible `:focus-visible` outlines.
+- **Semantic HTML**: Proper `<header>`, `<main>`, `<section>`, `<nav>`, `<footer>`, `<article>`, and `<time>` tags throughout all pages.

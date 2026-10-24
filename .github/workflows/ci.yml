@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.5.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Run unit & integration tests
+        run: pnpm test
+
+      - name: Verify Next.js build
+        env:
+          APP_URL: "https://opportunities.campusloop.space"
+          CAMPUSLOOP_ISSUER: "https://campusloop.space"
+          DATABASE_URL: "postgresql://dummy:dummy@ep-test.dummy.neon.tech/neondb?sslmode=require"
+          CAMPUSLOOP_CLIENT_ID: "dummy_client_id"
+          CAMPUSLOOP_CLIENT_SECRET: "dummy_client_secret"
+          AUTH_SECRET: "dummy_auth_secret_minimum_32_characters_long_for_tests"
+          MCP_API_SECRET: "dummy_mcp_api_secret_for_tests"
+        run: pnpm run build

@@ -1,49 +1,231 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/campusloop-space/.github/main/profile/assets/banner.svg" alt="CampusLoop — All of college. One loop." width="100%" />
-</p>
+# CampusLoop Opportunities 🎓🚀
 
-# 🎯 CampusLoop Opportunities
+> **Official Discovery & Curation Engine for Internships, Hackathons, Scholarships, Fellowships, and Student Programs.**  
+> Part of the **CampusLoop Labs** product family (`https://campusloop.space`).
 
-**Internships, hackathons, scholarships & fellowships for Indian students — with the deadlines that matter.**
+- **Production URL**: [https://opportunities.campusloop.space](https://opportunities.campusloop.space)
+- **Parent Platform**: [https://campusloop.space](https://campusloop.space)
+- **OIDC Callback**: `https://opportunities.campusloop.space/auth/callback/campusloop`
+- **MCP Server Endpoint**: `https://opportunities.campusloop.space/api/mcp`
+- **Health Check**: `https://opportunities.campusloop.space/api/health`
 
-<p>
-  <a href="https://opportunities.campusloop.space"><img src="https://img.shields.io/badge/Live-opportunities.campusloop.space-7C3AED?style=for-the-badge" alt="Live site" /></a>
-  <a href="https://campusloop.space"><img src="https://img.shields.io/badge/Part%20of-CampusLoop-9D6CFF?style=for-the-badge" alt="Part of CampusLoop" /></a>
-</p>
+---
 
-Students miss life-changing opportunities every semester for one boring reason: **nobody told them before the deadline.** Opportunities is CampusLoop's answer — one board that tracks what's open, who it's for, and when it closes.
+## 1. Product Overview
 
-## 🔍 What you'll find
+CampusLoop Opportunities is a high-speed, SEO-first platform engineered specifically for Indian and global university students. It solves the fragmentation problem in student discovery by curating verified opportunities across 7 distinct verticals:
 
-- 💼 **Internships** — research, industry and government internships open to Indian students
-- 🏆 **Hackathons** — national and campus hackathons worth your weekend
-- 🎓 **Scholarships** — merit, means and government scholarships with eligibility that actually applies to you
-- 🔬 **Fellowships** — research and leadership fellowships, including first-year-friendly ones
+1. **Internships**: Summer, winter, off-campus, and industry roles.
+2. **Hackathons**: National, global, and collegiate product sprints and hackathons.
+3. **Scholarships**: Corporate, governmental, and merit-based tuition grants.
+4. **Fellowships**: Open source (e.g. GSoC, LFX), policy, research, and leadership fellowships.
+5. **Research Programs**: Undergraduate research internships and laboratory positions (e.g. SURGE, SRIP).
+6. **Competitions**: Coding contests, ICPC regionals, data science and case challenges.
+7. **Student Programs**: Campus ambassador programs, developer clubs (MLSA, GDG), and student packs.
 
-Every listing is built for forwarding: the kind of post that travels through college WhatsApp groups because the deadline is *this week*.
+All listings are strictly verified, include direct links to organizer portals, and feature native WhatsApp sharing for student groups and batch communities.
 
-## 🔁 Part of the loop
+---
 
-Opportunities is a [CampusLoop](https://campusloop.space) product, alongside [DSALoop](https://dsaloop.campusloop.space) for DSA & interview prep. Content stays fully open — no sign-up wall to browse. An optional **Login with CampusLoop** syncs your saved opportunities and deadlines to your main CampusLoop account, so an application you bookmark here counts toward the same streak and Loop Points as everything else in the loop.
+## 2. Architecture & Tech Stack
 
-## 🗺️ Repo contents
+```mermaid
+flowchart TD
+    User["Student Browser"] -->|"HTTPS / CDN"| CF["Cloudflare Edge Anycast"]
+    Agent["AI Agent / Crawler"] -->|"JSON-RPC 2.0 (Bearer Auth)"| MCP["/api/mcp (Streamable HTTP)"]
+    
+    subgraph Cloudflare["Cloudflare Workers Runtime (OpenNext)"]
+        CF --> NextSSR["Next.js 16 App Router (SSR)"]
+        MCP --> Tools["15 MCP Tool Handlers"]
+        NextSSR --> Drizzle["Drizzle ORM Engine"]
+        Tools --> Drizzle
+        NextSSR --> OIDC["CampusLoop OIDC Auth (jose)"]
+    end
+    
+    subgraph External["Cloud Infrastructure"]
+        Drizzle -->|"HTTP Serverless Protocol (TLS)"| Neon[("Neon PostgreSQL")]
+        OIDC -->|"ES256 JWKS & Token Exchange"| CampusLoop["CampusLoop Identity (campusloop.space)"]
+    end
+```
 
-| Path | What it is |
-|---|---|
-| [`DESIGN.md`](./DESIGN.md) | Product & design notes for the Opportunities platform |
-| [`docs/IDEAS.md`](./docs/IDEAS.md) | Sub-platform idea research for the wider CampusLoop ecosystem |
+### Core Technologies
+- **Framework**: Next.js 16.2 (App Router with Webpack runtime for Cloudflare compatibility).
+- **Deployment Adapter**: `@opennextjs/cloudflare` + Cloudflare Workers.
+- **Database & ORM**: Neon Serverless PostgreSQL with Drizzle ORM (`@neondatabase/serverless` HTTP driver).
+- **Styling**: Tailwind CSS v4 with custom terracotta/cream design system (`DESIGN.md`).
+- **Authentication**: CampusLoop OIDC (PKCE S256, signed state tokens, ES256 JWKS verification via `jose`).
+- **AI Agent Protocol**: Model Context Protocol (MCP) Streamable HTTP transport (JSON-RPC 2.0).
+- **Package Manager**: `pnpm` v12 (Node 20 LTS).
 
-## 🤝 Contributing
+---
 
-Know an internship, hackathon, scholarship or fellowship students shouldn't miss — or spotted a wrong deadline? **Open an issue** with the official link. Accurate deadlines are the whole product.
+## 3. Model Context Protocol (MCP) & AI Agent Publishing
 
-## 🔗 CampusLoop
+AI ingestion agents publish, deduplicate, and manage opportunities directly through the Streamable HTTP MCP server at `/api/mcp`.
 
-- 🌐 Main app — [campusloop.space](https://campusloop.space)
-- 🧩 DSA prep — [dsaloop.campusloop.space](https://dsaloop.campusloop.space)
-- 📰 Guides — [campusloop.space/articles](https://campusloop.space/articles)
-- 👥 GitHub — [@campusloop-space](https://github.com/campusloop-space)
+### Authentication
+Machine-to-machine requests require a shared secret passed as a Bearer token:
+```http
+POST /api/mcp HTTP/1.1
+Host: opportunities.campusloop.space
+Authorization: Bearer <YOUR_MCP_API_SECRET>
+Content-Type: application/json
 
-<p align="center">
-  <sub><strong>CampusLoop</strong> — All of college. One loop.</sub>
-</p>
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/list",
+  "params": {}
+}
+```
+
+### MCP Tools Reference (15 Tools)
+
+| Tool Name | Description | Key Parameters |
+| :--- | :--- | :--- |
+| `create_opportunity` | Inserts a new draft or published opportunity. Automatically calculates content hash and canonical slug. | `title`, `organization`, `category`, `description`, `external_url`, `deadline`, `status` |
+| `upsert_opportunity` | Inserts or updates an existing opportunity matched by content hash or external URL. | Same as create + `force_update` |
+| `bulk_upsert_opportunities` | Batch upsert up to 50 opportunities in an atomic or sequential pipeline. | `opportunities: Array<OpportunityInput>` |
+| `update_opportunity` | Modifies fields of an existing opportunity by ID. | `id`, `patch: Partial<OpportunityInput>` |
+| `get_opportunity` | Fetches full opportunity record by UUID or slug. | `id` or `slug` |
+| `search_opportunities` | Full-text and faceted search across active listings. | `query`, `category`, `status`, `limit`, `offset` |
+| `list_opportunities` | Filtered list with pagination and ordering. | `category`, `location_type`, `status`, `sort_by`, `limit` |
+| `publish_opportunity` | Transitions a draft listing to published status. | `id`, `notes` |
+| `close_opportunity` | Explicitly closes an opportunity. | `id`, `reason` |
+| `mark_opportunity_expired` | Marks opportunities whose deadline has passed as expired. | `id` |
+| `check_duplicate_opportunities`| Pre-flight check returning existing matches based on URL, title, and organizer. | `external_url`, `title`, `organization` |
+| `report_source_status` | Updates source verification status (`official`, `curated`, `community`). | `id`, `source_status`, `verified` |
+| `delete_opportunity` | Hard-deletes an invalid listing and logs the audit event. | `id`, `reason` |
+| `get_ingestion_stats` | Aggregated metrics on opportunities by category and status. | None |
+| `get_categories` | Lists all 7 active taxonomy categories with descriptions. | None |
+
+### Sample Client Configuration
+
+#### Claude Desktop (`claude_desktop_config.json`)
+```json
+{
+  "mcpServers": {
+    "campusloop-opportunities": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-fetch",
+        "https://opportunities.campusloop.space/api/mcp",
+        "--header",
+        "Authorization: Bearer YOUR_MCP_API_SECRET"
+      ]
+    }
+  }
+}
+```
+
+#### Antigravity / Cursor Custom MCP
+```json
+{
+  "name": "campusloop-opportunities",
+  "url": "https://opportunities.campusloop.space/api/mcp",
+  "headers": {
+    "Authorization": "Bearer YOUR_MCP_API_SECRET"
+  }
+}
+```
+
+---
+
+## 4. Ingestion & Deduplication Engine
+
+To eliminate duplicate listings across web scrapers and external feeds:
+1. **Deterministic Content Hash**: Every listing computes an SHA-256 hash across `normalized_title + normalized_organizer + normalized_external_url`.
+2. **URL Normalization**: Strips tracking parameters (`utm_*`, `ref`, `fbclid`), trailing slashes, and lowercases hostnames.
+3. **Canonical Slugs**: Generated hierarchically (`organization-title-year`) with collision avoidance via incremental numerical suffixing.
+4. **Audit Logging**: Every create, update, publish, or status change creates an immutable audit trail in `opportunity_audit_logs`.
+
+---
+
+## 5. CampusLoop OIDC Integration
+
+CampusLoop Opportunities integrates seamlessly with CampusLoop Single Sign-On:
+- **Authorization Endpoint**: `https://campusloop.space/oauth/authorize`
+- **Token Endpoint**: `https://campusloop.space/oauth/token`
+- **JWKS Endpoint**: `https://campusloop.space/.well-known/jwks.json`
+- **Requested Scopes**: `openid profile email student college academic`
+- **Security**: PKCE S256 code challenge with signed state tokens, ES256 asymmetric signature verification, and open-redirect sanitization.
+
+Unauthenticated users can freely browse, search, and share all listings; signing in enables persistent personal bookmarks and community fraud reports.
+
+---
+
+## 6. Environment Variables
+
+| Variable | Required | Description | Example / Note |
+| :--- | :--- | :--- | :--- |
+| `APP_URL` | Yes | Public canonical base URL | `https://opportunities.campusloop.space` |
+| `DATABASE_URL` | Yes | Neon Serverless PostgreSQL connection string | `postgresql://user:pass@ep-xyz.aws.neon.tech/neondb?sslmode=require` |
+| `CAMPUSLOOP_ISSUER` | Yes | CampusLoop OIDC Issuer | `https://campusloop.space` |
+| `CAMPUSLOOP_CLIENT_ID` | Yes | CampusLoop OAuth Client ID | `cl_app_...` |
+| `CAMPUSLOOP_CLIENT_SECRET`| Yes | CampusLoop OAuth Client Secret | Stored in Worker secrets |
+| `AUTH_SECRET` | Yes | 32+ char secret for JWT session encryption | Random high-entropy string |
+| `MCP_API_SECRET` | Yes | Bearer token for AI agent MCP publishing API | Random high-entropy string |
+
+---
+
+## 7. Local Development & Deployment
+
+### Prerequisites
+- Node.js 20 LTS or higher
+- `pnpm` v12 (`npm i -g pnpm`)
+
+### Setup
+```bash
+# Clone the repository
+git clone https://github.com/campusloop-space/opportunities.git
+cd opportunities
+
+# Install dependencies
+pnpm install
+
+# Copy environment template
+cp .env.example .env.local
+# Fill in your local credentials in .env.local and .dev.vars
+
+# Run database migrations
+pnpm run db:migrate
+
+# Seed sample verified data
+pnpm run db:seed
+
+# Start Next.js development server
+pnpm run dev
+```
+
+### Testing
+```bash
+# Run unit & integration test suite (Vitest)
+pnpm test
+
+# Run strict TypeScript verification
+pnpm run typecheck
+```
+
+### Production Deployment (Cloudflare Workers)
+```bash
+# 1. Build Next.js application with Webpack runtime
+pnpm run build
+
+# 2. Bundle Cloudflare Worker via OpenNext
+pnpm run build:worker
+
+# 3. Deploy Worker using Wrangler
+node node_modules/wrangler/wrangler-dist/cli.js deploy --no-autoconfig
+```
+
+> **Engineering Note on Tooling**:
+> - `pnpm` is the canonical package manager for this repository because `bun` encounters kernel-level syscall restrictions (`getrandom failed: errno 38`) on Linux hosts running kernel < 3.17.
+> - `next build --webpack` is used because `@opennextjs/cloudflare` requires Webpack-generated route runtime bundles for full Cloudflare Workers compatibility.
+> - `--no-autoconfig` is supplied to Wrangler to directly deploy `.open-next/worker.js` with assets `.open-next/assets`.
+
+---
+
+## 8. License
+
+CampusLoop Opportunities is an official product of **CampusLoop Labs**. All rights reserved.
